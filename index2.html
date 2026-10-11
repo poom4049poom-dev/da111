@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แผงตรวจสอบแอดมิน</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: linear-gradient(135deg, #0f0f1a, #1a1a2e); min-height: 100vh; color: #fff; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        h1 { text-align: center; margin-bottom: 30px; color: #ffd700; }
+        .tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #333; flex-wrap: wrap; }
+        .tab { padding: 12px 25px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; }
+        .tab.active { border-bottom-color: #ffd700; color: #ffd700; font-weight: bold; }
+        .tab-count { background: #ffd700; color: #000; border-radius: 10px; padding: 2px 8px; margin-left: 8px; font-size: 14px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+        .card { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #444; }
+        .card.pending { border-left-color: #ffc107; }
+        .card.pass { border-left-color: #28a745; }
+        .card.reject { border-left-color: #dc3545; }
+        .card p { margin: 8px 0; line-height: 1.7; }
+        .card strong { color: #ffd700; }
+        .img-section { margin: 15px 0; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .img-section h4 { margin-bottom: 10px; color: #aaa; }
+        .img-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .img-grid img { max-width: 180px; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .img-grid img:hover { transform: scale(1.05); }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin: 5px; transition: 0.3s; }
+        .btn-pass { background: #28a745; color: #fff; }
+        .btn-pass:hover { background: #218838; }
+        .btn-reject { background: #dc3545; color: #fff; }
+        .btn-reject:hover { background: #c82333; }
+        .btn-refresh { background: #007bff; color: #fff; display: block; margin: 0 auto 20px; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .status-pending { background: #ffc107; color: #000; }
+        .status-pass { background: #28a745; color: #fff; }
+        .status-reject { background: #dc3545; color: #fff; }
+        .empty { text-align: center; padding: 40px; opacity: 0.6; }
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 999; }
+        .lightbox.show { display: flex; }
+        .lightbox img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: 20px; right: 30px; font-size: 30px; color: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔐 แผงตรวจสอบแอดมิน</h1>
+    
+    <button class="btn btn-refresh" onclick="loadData()">🔄 โหลดข้อมูลใหม่</button>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="pending" onclick="switchTab('pending')">
+            ⏳ รอตรวจสอบ <span class="tab-count" id="count-pending">0</span>
+        </div>
+        <div class="tab" data-tab="pass" onclick="switchTab('pass')">
+            ✅ ผ่าน <span class="tab-count" id="count-pass">0</span>
+        </div>
+        <div class="tab" data-tab="reject" onclick="switchTab('reject')">
+            ❌ ไม่ผ่าน <span class="tab-count" id="count-reject">0</span>
+        </div>
+    </div>
+
+    <!-- รอตรวจสอบ -->
+    <div id="tab-pending" class="tab-content active"></div>
+    
+    <!-- ผ่าน -->
+    <div id="tab-pass" class="tab-content"></div>
+    
+    <!-- ไม่ผ่าน -->
+    <div id="tab-reject" class="tab-content"></div>
+</div>
+
+<!-- กล่องขยายรูป -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImg" src="">
+</div>
+
+<script>
+let applications = [];
+
+window.onload = function() {
+    loadData();
+};
+
+function loadData() {
+    applications = JSON.parse(localStorage.getItem('clanApps') || '[]');
+    updateCounts();
+    renderTab('pending');
+    renderTab('pass');
+    renderTab('reject');
+}
+
+function updateCounts() {
+    document.getElementById('count-pending').textContent = applications.filter(a => a.status === 'pending').length;
+    document.getElementById('count-pass').textContent = applications.filter(a => a.status === 'pass').length;
+    document.getElementById('count-reject').textContent = applications.filter(a => a.status === 'reject').length;
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+}
+
+function renderTab(status) {
+    const container = document.getElementById(`tab-${status}`);
+    const list = applications.filter(a => a.status === status);
+    
+    if (list.length === 0) {
+        container.innerHTML = `<div class="empty">ไม่มีรายการ${status === 'pending' ? 'รอตรวจสอบ' : status === 'pass' ? 'ที่ผ่าน' : 'ที่ไม่ผ่าน'}</div>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    list.forEach(app => {
+        const card = document.createElement('div');
+        card.className = `card ${app.status}`;
+        card.innerHTML = `
+            <p><strong>ชื่อในเกม:</strong> ${app.gameName}</p>
+            <p><strong>เคยอยู่แคลน:</strong> ${app.oldClan} ${app.oldClanDetail !== '-' ? `→ ${app.oldClanDetail}` : ''}</p>
+            <p><strong>เหตุผลที่เข้าแคลน:</strong> ${app.reason}</p>
+            <p><strong>เวลาส่ง:</strong> ${app.time}</p>
+            <p><strong>สถานะ:</strong> 
+                <span class="status status-${app.status}">
+                    ${app.status === 'pending' ? 'รอตรวจสอบ' : app.status === 'pass' ? 'ผ่าน' : 'ไม่ผ่าน'}
+                </span>
+            </p>
+
+            <div class="img-section">
+                <h4>1. รูปตัวละครที่ไม่ใช่สล๊อด (${app.images?.char?.length || 0} รูป)</h4>
+                <div class="img-grid">
+                    ${(app.images?.char || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                </div>
+            </div>
+
+            <div class="img-section">
+                <h4>2. รูปโทเท็ม (${app.images?.totem?.length || 0} รูป)</h4>
+                <div class="img-grid">
+                    ${(app.images?.totem || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                </div>
+            </div>
+
+            <div class="img-section">
+                <h4>3. รูปสล๊อด (${app.images?.slot?.length || 0} รูป)</h4>
+                <div class="img-grid">
+                    ${(app.images?.slot || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                </div>
+            </div>
+
+            ${status === 'pending' ? `
+                <div style="margin-top:15px;">
+                    <button class="btn btn-pass" onclick="updateStatus(${app.id}, 'pass')">✅ อนุมัติ</button>
+                    <button class="btn btn-reject" onclick="updateStatus(${app.id}, 'reject')">❌ ปฏิเสธ</button>
+                </div>
+            ` : ''}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function updateStatus(id, newStatus) {
+    const app = applications.find(a => a.id === id);
+    if (app) {
+        app.status = newStatus;
+        localStorage.setItem('clanApps', JSON.stringify(applications));
+        loadData();
+    }
+}
+
+function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').classList.add('show');
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('show');
+}
+</script>
+
+</body>
+</html>
