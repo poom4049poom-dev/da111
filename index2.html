@@ -3,185 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แผงตรวจสอบแอดมิน</title>
+    <title>แผงแอดมิน - ตรวจสอบใบสมัคร</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: linear-gradient(135deg, #0f0f1a, #1a1a2e); min-height: 100vh; color: #fff; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        h1 { text-align: center; margin-bottom: 30px; color: #ffd700; }
-        .tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #333; flex-wrap: wrap; }
-        .tab { padding: 12px 25px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; }
-        .tab.active { border-bottom-color: #ffd700; color: #ffd700; font-weight: bold; }
-        .tab-count { background: #ffd700; color: #000; border-radius: 10px; padding: 2px 8px; margin-left: 8px; font-size: 14px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-        .card { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #444; }
-        .card.pending { border-left-color: #ffc107; }
-        .card.pass { border-left-color: #28a745; }
-        .card.reject { border-left-color: #dc3545; }
-        .card p { margin: 8px 0; line-height: 1.7; }
-        .card strong { color: #ffd700; }
-        .img-section { margin: 15px 0; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; }
-        .img-section h4 { margin-bottom: 10px; color: #aaa; }
-        .img-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        .img-grid img { max-width: 180px; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
-        .img-grid img:hover { transform: scale(1.05); }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin: 5px; transition: 0.3s; }
-        .btn-pass { background: #28a745; color: #fff; }
-        .btn-pass:hover { background: #218838; }
+        body { background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; color: #fff; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        h1, h2 { text-align: center; margin-bottom: 30px; color: #ffd700; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; }
+        input[type="password"] { width: 100%; padding: 12px; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 16px; }
+        input:focus { outline: 2px solid #ffd700; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; margin: 5px; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; }
+        .btn-primary { background: #ffd700; color: #000; }
+        .btn-primary:hover { background: #ffed4e; transform: translateY(-2px); }
+        .btn-back { background: #444; color: #fff; }
+        .btn-approve { background: #28a745; color: #fff; }
         .btn-reject { background: #dc3545; color: #fff; }
-        .btn-reject:hover { background: #c82333; }
-        .btn-refresh { background: #007bff; color: #fff; display: block; margin: 0 auto 20px; }
-        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
-        .status-pending { background: #ffc107; color: #000; }
-        .status-pass { background: #28a745; color: #fff; }
-        .status-reject { background: #dc3545; color: #fff; }
-        .empty { text-align: center; padding: 40px; opacity: 0.6; }
-        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 999; }
-        .lightbox.show { display: flex; }
-        .lightbox img { max-width: 90%; max-height: 90%; border-radius: 8px; }
-        .lightbox-close { position: absolute; top: 20px; right: 30px; font-size: 30px; color: #fff; cursor: pointer; }
+        .btn-delete { background: #666; color: #fff; }
+        .img-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+        .preview-img { max-width: 140px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .preview-img:hover { transform: scale(1.05); }
+        .login-box { max-width: 420px; margin: 60px auto; text-align: center; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .header-bar a { color: #ffd700; text-decoration: none; font-size: 14px; }
+        .filter-bar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 22px; margin-bottom: 20px; border-left: 4px solid; }
+        .card.pending { border-left-color: #ffc107; }
+        .card.approved { border-left-color: #28a745; }
+        .card.rejected { border-left-color: #dc3545; }
+        .card p { margin: 9px 0; line-height: 1.7; }
+        .card strong { color: #ffd700; }
+        .status-tag { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .status-pending { background: rgba(255,193,7,.15); color: #ffc107; }
+        .status-approved { background: rgba(40,167,69,.15); color: #28a745; }
+        .status-rejected { background: rgba(220,53,69,.15); color: #dc3545; }
+        .empty { text-align: center; padding: 50px 20px; color: #888; font-size: 16px; }
+        .img-label { margin-top: 12px; margin-bottom: 4px; font-weight: 500; color: #ccc; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🔐 แผงตรวจสอบแอดมิน</h1>
-    
-    <button class="btn btn-refresh" onclick="loadData()">🔄 โหลดข้อมูลใหม่</button>
-    <div class="tabs">
-        <div class="tab active" data-tab="pending" onclick="switchTab('pending')">
-            ⏳ รอตรวจสอบ <span class="tab-count" id="count-pending">0</span>
+<!-- หน้าล็อกอิน -->
+<div class="page active" id="loginPage">
+    <div class="container login-box">
+        <h1>🔐 เข้าสู่ระบบแอดมิน</h1>
+        <div class="form-group">
+            <label>รหัสผ่านแอดมิน</label>
+            <input type="password" id="adminPass" placeholder="กรอกรหัสผ่าน...">
         </div>
-        <div class="tab" data-tab="pass" onclick="switchTab('pass')">
-            ✅ ผ่าน <span class="tab-count" id="count-pass">0</span>
-        </div>
-        <div class="tab" data-tab="reject" onclick="switchTab('reject')">
-            ❌ ไม่ผ่าน <span class="tab-count" id="count-reject">0</span>
-        </div>
+        <button class="btn btn-primary" onclick="adminLogin()">เข้าสู่ระบบ</button>
+        <br><br>
+        <a href="index.html" style="color:#ffd700; font-size:14px;">← กลับไปหน้าสมัคร</a>
     </div>
-    <div id="tab-pending" class="tab-content active"></div>
-    <div id="tab-pass" class="tab-content"></div>
-    <div id="tab-reject" class="tab-content"></div>
 </div>
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <span class="lightbox-close">&times;</span>
-    <img id="lightboxImg" src="" alt="รูปขยาย">
-</div>
-<script>
-let applications = [];
 
-window.onload = function() {
-    if (typeof localStorage !== 'undefined') {
-        loadData();
+<!-- หน้าแผงควบคุม -->
+<div class="page" id="panelPage">
+    <div class="container">
+        <div class="header-bar">
+            <h2 style="margin:0;">📋 รายการใบสมัคร</h2>
+            <a href="#" onclick="logOut(); return false;">🚪 ออกจากระบบ</a>
+        </div>
+
+        <div class="filter-bar">
+            <button class="btn btn-sm btn-primary" onclick="setFilter('all')">ทั้งหมด</button>
+            <button class="btn btn-sm" style="background:#ffc107; color:#000;" onclick="setFilter('pending')">รอตรวจ</button>
+            <button class="btn btn-sm btn-approve" onclick="setFilter('approved')">อนุมัติแล้ว</button>
+            <button class="btn btn-sm btn-reject" onclick="setFilter('rejected')">ไม่อนุมัติ</button>
+        </div>
+
+        <div id="appList"></div>
+    </div>
+</div>
+
+<script>
+// === ตั้งค่า ===
+const ADMIN_PASSWORD = "4210"; // ✅ รหัสผ่านใหม่: 4210
+let currentFilter = 'all';
+
+// === ล็อกอิน ===
+function adminLogin() {
+    const pass = document.getElementById('adminPass').value;
+    if (pass === ADMIN_PASSWORD) {
+        localStorage.setItem('adminAuth', 'ok');
+        showPage('panelPage');
+        renderList();
     } else {
-        console.log("ไม่สามารถเข้าถึงที่เก็บข้อมูลได้");
+        alert('❌ รหัสผ่านไม่ถูกต้อง!');
+    }
+}
+
+function logOut() {
+    localStorage.removeItem('adminAuth');
+    document.getElementById('adminPass').value = '';
+    showPage('loginPage');
+}
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// === ตรวจสอบสิทธิ์อัตโนมัติ ===
+window.onload = function () {
+    if (localStorage.getItem('adminAuth') === 'ok') {
+        showPage('panelPage');
+        renderList();
     }
 };
 
-function loadData() {
-    try {
-        applications = JSON.parse(localStorage.getItem('clanApps') || '[]');
-    } catch (e) {
-        applications = [];
-        console.log("รีเซ็ตข้อมูล: ", e);
+// === ตัวกรอง ===
+function setFilter(type) {
+    currentFilter = type;
+    renderList();
+}
+
+// === แสดงรายการ ===
+function renderList() {
+    const container = document.getElementById('appList');
+    let apps = JSON.parse(localStorage.getItem('clanApps') || '[]');
+
+    if (currentFilter !== 'all') {
+        apps = apps.filter(a => a.status === currentFilter);
     }
-    updateCounts();
-    renderAllTabs();
-}
 
-function updateCounts() {
-    document.getElementById('count-pending').textContent = applications.filter(a => a.status === 'pending').length;
-    document.getElementById('count-pass').textContent = applications.filter(a => a.status === 'pass').length;
-    document.getElementById('count-reject').textContent = applications.filter(a => a.status === 'reject').length;
-}
-
-function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(`tab-${tabName}`).classList.add('active');
-}
-
-function renderAllTabs() {
-    ['pending', 'pass', 'reject'].forEach(status => renderTab(status));
-}
-
-function renderTab(status) {
-    const container = document.getElementById(`tab-${status}`);
-    const list = applications.filter(a => a.status === status);
-    
-    if (list.length === 0) {
-        const label = status === 'pending' ? 'รอตรวจสอบ' : status === 'pass' ? 'ที่ผ่านแล้ว' : 'ที่ไม่ผ่าน';
-        container.innerHTML = `<div class="empty">ไม่มีรายการ${label}</div>`;
+    if (apps.length === 0) {
+        container.innerHTML = '<div class="empty">📭 ไม่มีรายการสมัคร</div>';
         return;
     }
-    
-    container.innerHTML = '';
-    list.forEach(app => {
-        const card = document.createElement('div');
-        card.className = `card ${app.status}`;
-        card.innerHTML = `
-            <p><strong>ชื่อในเกม:</strong> ${app.gameName || '-'}</p>
-            <p><strong>เคยอยู่แคลน:</strong> ${app.oldClan || '-'} ${app.oldClanDetail && app.oldClanDetail !== '-' ? `→ ${app.oldClanDetail}` : ''}</p>
-            <p><strong>เหตุผลที่เข้าแคลน:</strong> ${app.reason || '-'}</p>
-            <p><strong>เวลาส่ง:</strong> ${app.time || '-'}</p>
-            <p><strong>สถานะ:</strong> 
-                <span class="status status-${app.status}">
-                    ${app.status === 'pending' ? 'รอตรวจสอบ' : app.status === 'pass' ? 'ผ่าน' : 'ไม่ผ่าน'}
-                </span>
-            </p>
-            <div class="img-section">
-                <h4>1. รูปตัวละคร (${(app.images?.char || []).length} รูป)</h4>
-                <div class="img-grid">
-                    ${(app.images?.char || []).length > 0 
-                        ? (app.images.char).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
-                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
-                </div>
+
+    container.innerHTML = apps.map(app => `
+        <div class="card ${app.status}">
+            <p><strong>🆔 เวลาสมัคร:</strong> ${app.time}</p>
+            <p><strong>🎮 ชื่อในเกม:</strong> ${escapeHtml(app.gameName)}</p>
+            <p><strong>👥 ประวัติแคลน:</strong> ${escapeHtml(app.oldClan)}${app.oldClanDetail !== '-' ? ' — ' + escapeHtml(app.oldClanDetail) : ''}</p>
+            <p><strong>💬 เหตุผล:</strong> ${escapeHtml(app.reason)}</p>
+            <p><strong>📌 สถานะ:</strong> <span class="status-tag status-${app.status}">${getStatusText(app.status)}</span></p>
+
+            <div class="img-label">รูปตัวละคร:</div>
+            <div class="img-grid">${renderImages(app.images.char)}</div>
+
+            <div class="img-label">รูปโทเท็ม:</div>
+            <div class="img-grid">${renderImages(app.images.totem)}</div>
+
+            <div class="img-label">รูปสล๊อด:</div>
+            <div class="img-grid">${renderImages(app.images.slot)}</div>
+
+            <div style="margin-top:15px;">
+                ${app.status === 'pending' ? `
+                    <button class="btn btn-sm btn-approve" onclick="changeStatus(${app.id}, 'approved')">✅ อนุมัติ</button>
+                    <button class="btn btn-sm btn-reject" onclick="changeStatus(${app.id}, 'rejected')">❌ ไม่อนุมัติ</button>
+                ` : ''}
+                <button class="btn btn-sm btn-delete" onclick="removeApp(${app.id})">🗑️ ลบ</button>
             </div>
-            <div class="img-section">
-                <h4>2. รูปโทเท็ม (${(app.images?.totem || []).length} รูป)</h4>
-                <div class="img-grid">
-                    ${(app.images?.totem || []).length > 0 
-                        ? (app.images.totem).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
-                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
-                </div>
-            </div>
-            <div class="img-section">
-                <h4>3. รูปสล๊อด (${(app.images?.slot || []).length} รูป)</h4>
-                <div class="img-grid">
-                    ${(app.images?.slot || []).length > 0 
-                        ? (app.images.slot).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
-                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
-                </div>
-            </div>
-            ${status === 'pending' ? `
-                <div style="margin-top:15px;">
-                    <button class="btn btn-pass" onclick="updateStatus(${app.id}, 'pass')">✅ อนุมัติ</button>
-                    <button class="btn btn-reject" onclick="updateStatus(${app.id}, 'reject')">❌ ปฏิเสธ</button>
-                </div>
-            ` : ''}
-        `;
-        container.appendChild(card);
-    });
+        </div>
+    `).join('');
 }
 
-function updateStatus(id, newStatus) {
-    const app = applications.find(a => a.id === id);
-    if (app) {
-        app.status = newStatus;
-        localStorage.setItem('clanApps', JSON.stringify(applications));
-        loadData();
+function renderImages(arr) {
+    arr = arr || [];
+    if (arr.length === 0) return '<span style="color:#666;">ไม่มีรูป</span>';
+    return arr.map(src => `<img src="${src}" class="preview-img" alt="รูป">`).join('');
+}
+
+function getStatusText(s) {
+    return { pending: '⏳ รอตรวจสอบ', approved: '✅ อนุมัติแล้ว', rejected: '❌ ไม่อนุมัติ' }[s] || s;
+}
+
+function changeStatus(id, newStatus) {
+    let apps = JSON.parse(localStorage.getItem('clanApps') || '[]');
+    apps = apps.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    localStorage.setItem('clanApps', JSON.stringify(apps));
+    renderList();
+}
+
+function removeApp(id) {
+    if (confirm('⚠️ แน่ใจหรือไม่ที่จะลบรายการนี้?')) {
+        let apps = JSON.parse(localStorage.getItem('clanApps') || '[]');
+        apps = apps.filter(a => a.id !== id);
+        localStorage.setItem('clanApps', JSON.stringify(apps));
+        renderList();
     }
 }
 
-function openLightbox(src) {
-    document.getElementById('lightboxImg').src = src;
-    document.getElementById('lightbox').classList.add('show');
-}
-
-function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('show');
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 </script>
 </body>
