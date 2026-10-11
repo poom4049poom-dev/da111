@@ -45,12 +45,10 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>🔐 แผงตรวจสอบแอดมิน</h1>
     
     <button class="btn btn-refresh" onclick="loadData()">🔄 โหลดข้อมูลใหม่</button>
-
     <div class="tabs">
         <div class="tab active" data-tab="pending" onclick="switchTab('pending')">
             ⏳ รอตรวจสอบ <span class="tab-count" id="count-pending">0</span>
@@ -62,36 +60,34 @@
             ❌ ไม่ผ่าน <span class="tab-count" id="count-reject">0</span>
         </div>
     </div>
-
-    <!-- รอตรวจสอบ -->
     <div id="tab-pending" class="tab-content active"></div>
-    
-    <!-- ผ่าน -->
     <div id="tab-pass" class="tab-content"></div>
-    
-    <!-- ไม่ผ่าน -->
     <div id="tab-reject" class="tab-content"></div>
 </div>
-
-<!-- กล่องขยายรูป -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <span class="lightbox-close">&times;</span>
-    <img id="lightboxImg" src="">
+    <img id="lightboxImg" src="" alt="รูปขยาย">
 </div>
-
 <script>
 let applications = [];
 
 window.onload = function() {
-    loadData();
+    if (typeof localStorage !== 'undefined') {
+        loadData();
+    } else {
+        console.log("ไม่สามารถเข้าถึงที่เก็บข้อมูลได้");
+    }
 };
 
 function loadData() {
-    applications = JSON.parse(localStorage.getItem('clanApps') || '[]');
+    try {
+        applications = JSON.parse(localStorage.getItem('clanApps') || '[]');
+    } catch (e) {
+        applications = [];
+        console.log("รีเซ็ตข้อมูล: ", e);
+    }
     updateCounts();
-    renderTab('pending');
-    renderTab('pass');
-    renderTab('reject');
+    renderAllTabs();
 }
 
 function updateCounts() {
@@ -107,51 +103,58 @@ function switchTab(tabName) {
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
+function renderAllTabs() {
+    ['pending', 'pass', 'reject'].forEach(status => renderTab(status));
+}
+
 function renderTab(status) {
     const container = document.getElementById(`tab-${status}`);
     const list = applications.filter(a => a.status === status);
     
     if (list.length === 0) {
-        container.innerHTML = `<div class="empty">ไม่มีรายการ${status === 'pending' ? 'รอตรวจสอบ' : status === 'pass' ? 'ที่ผ่าน' : 'ที่ไม่ผ่าน'}</div>`;
+        const label = status === 'pending' ? 'รอตรวจสอบ' : status === 'pass' ? 'ที่ผ่านแล้ว' : 'ที่ไม่ผ่าน';
+        container.innerHTML = `<div class="empty">ไม่มีรายการ${label}</div>`;
         return;
     }
-
+    
     container.innerHTML = '';
     list.forEach(app => {
         const card = document.createElement('div');
         card.className = `card ${app.status}`;
         card.innerHTML = `
-            <p><strong>ชื่อในเกม:</strong> ${app.gameName}</p>
-            <p><strong>เคยอยู่แคลน:</strong> ${app.oldClan} ${app.oldClanDetail !== '-' ? `→ ${app.oldClanDetail}` : ''}</p>
-            <p><strong>เหตุผลที่เข้าแคลน:</strong> ${app.reason}</p>
-            <p><strong>เวลาส่ง:</strong> ${app.time}</p>
+            <p><strong>ชื่อในเกม:</strong> ${app.gameName || '-'}</p>
+            <p><strong>เคยอยู่แคลน:</strong> ${app.oldClan || '-'} ${app.oldClanDetail && app.oldClanDetail !== '-' ? `→ ${app.oldClanDetail}` : ''}</p>
+            <p><strong>เหตุผลที่เข้าแคลน:</strong> ${app.reason || '-'}</p>
+            <p><strong>เวลาส่ง:</strong> ${app.time || '-'}</p>
             <p><strong>สถานะ:</strong> 
                 <span class="status status-${app.status}">
                     ${app.status === 'pending' ? 'รอตรวจสอบ' : app.status === 'pass' ? 'ผ่าน' : 'ไม่ผ่าน'}
                 </span>
             </p>
-
             <div class="img-section">
-                <h4>1. รูปตัวละครที่ไม่ใช่สล๊อด (${app.images?.char?.length || 0} รูป)</h4>
+                <h4>1. รูปตัวละคร (${(app.images?.char || []).length} รูป)</h4>
                 <div class="img-grid">
-                    ${(app.images?.char || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                    ${(app.images?.char || []).length > 0 
+                        ? (app.images.char).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
+                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
                 </div>
             </div>
-
             <div class="img-section">
-                <h4>2. รูปโทเท็ม (${app.images?.totem?.length || 0} รูป)</h4>
+                <h4>2. รูปโทเท็ม (${(app.images?.totem || []).length} รูป)</h4>
                 <div class="img-grid">
-                    ${(app.images?.totem || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                    ${(app.images?.totem || []).length > 0 
+                        ? (app.images.totem).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
+                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
                 </div>
             </div>
-
             <div class="img-section">
-                <h4>3. รูปสล๊อด (${app.images?.slot?.length || 0} รูป)</h4>
+                <h4>3. รูปสล๊อด (${(app.images?.slot || []).length} รูป)</h4>
                 <div class="img-grid">
-                    ${(app.images?.slot || []).map(src => `<img src="${src}" onclick="openLightbox('${src}')">`).join('') || '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
+                    ${(app.images?.slot || []).length > 0 
+                        ? (app.images.slot).map(src => `<img src="${src}" alt="รูป" onclick="openLightbox('${src}')">`).join('') 
+                        : '<span style="opacity:0.5;">- ไม่มีรูป -</span>'}
                 </div>
             </div>
-
             ${status === 'pending' ? `
                 <div style="margin-top:15px;">
                     <button class="btn btn-pass" onclick="updateStatus(${app.id}, 'pass')">✅ อนุมัติ</button>
@@ -181,6 +184,5 @@ function closeLightbox() {
     document.getElementById('lightbox').classList.remove('show');
 }
 </script>
-
 </body>
 </html>
